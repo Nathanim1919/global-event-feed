@@ -3,22 +3,32 @@ package main
 import (
 	"log"
 	"net/http"
+
 	"global-event-feed/config"
+	"global-event-feed/internal/handler"
 	"global-event-feed/internal/repository"
+	"global-event-feed/internal/service"
+
+	"github.com/go-chi/chi/v5"
 )
 
-
-func main(){
-	// Load environment config
+func main() {
+	// Load config
 	cfg := config.LoadConfig()
 
-	// connect to Postgres
-	dbPool := repository.ConnectDB(config)
-	defer dbPool.Close() // close pool when app exists
+	// Connect DB
+	db := repository.ConnectDB(cfg)
+	defer db.Close()
 
-	// TODO: initlaize router and attach handlers
+	// Initialize layers
+	eventRepo := repository.NewEventRepository(db)
+	eventSvc := service.NewEventService(eventRepo)
+	eventHandler := handler.NewEventHandler(eventSvc)
 
+	// Router
+	r := chi.NewRouter()
+	eventHandler.RegisterRoutes(r)
 
-	log.Printf("Server ready on port %s\n", cfg.Port)
-	http.ListenAndServe(":"+cfg.Port, nil) // Placeholder for now
+	log.Printf("Server running on port %s", cfg.Port)
+	http.ListenAndServe(":"+cfg.Port, r)
 }

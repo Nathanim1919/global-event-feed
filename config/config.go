@@ -2,24 +2,23 @@ package config
 
 import (
 	"log"
-	"os",
+	"os"
+
 	"github.com/joho/godotenv"
 )
 
 type Config struct {
-	DBHost string
-	DBPort string
-	DBUser string
+	DBHost     string
+	DBPort     string
+	DBUser     string
 	DBPassword string
-	DBName string
-	Port string
+	DBName     string
+	Port       string
 }
-
-
 
 func LoadConfig() *Config {
 	// Load .env in development
-	_ := godotenv.Load()
+	_ = godotenv.Load()
 
 	cfg := &Config{
 		DBHost:     os.Getenv("DB_HOST"),
@@ -30,12 +29,10 @@ func LoadConfig() *Config {
 		Port:       os.Getenv("PORT"),
 	}
 
-
-	// Fail fast if any critical varial is missing
+	// Fail fast if any critical variable is missing
 	if cfg.DBHost == "" || cfg.DBPort == "" || cfg.DBUser == "" || cfg.DBPassword == "" || cfg.DBName == "" || cfg.Port == "" {
 		log.Fatal("One or more required environment variables are missing")
 	}
 
 	return cfg
-
 }

@@ -2,11 +2,13 @@ services:
   postgres:
     image: postgres:16-alpine
     environment:
+      - POSTGRES_DB=global_event_feed
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=password
     volumes:
       - postgres-db-volume:/var/lib/postgresql/data
     ports:
       - 5432:5432
-    networks:
-      - postgres-db-network
+
+volumes:
+  postgres-db-volume:

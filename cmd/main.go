@@ -42,6 +42,12 @@ func main() {
 	r := chi.NewRouter()
 
 	// Run middlewares
+		r.Use(func(next http.Handler) http.Handler {
+	      return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	          w.Header().Set("Content-Type", "application/json")
+	          next.ServeHTTP(w, r)
+	      })
+	  })
 	r.Use(middleware.Logger)   // logs every request (method, path, duration)
 	r.Use(middleware.Recoverer)  // caches panics so the server doesnt crash
 

@@ -37,6 +37,7 @@ func (s *EventService) CreateEvent(ctx context.Context, e *model.Event) error {
 
 	repoEvent := &repository.Event{
 		Title:       e.Title,
+		Type:        e.Type,
 		Description: e.Description,
 		Source:      e.Location,
 		OccurredAt:  e.Timestamp,
@@ -65,7 +66,7 @@ func (s *EventService) GetEvents(ctx context.Context, limit int) ([]model.Event,
 	for _, re := range repoEvents {
 		events = append(events, model.Event{
 			ID:          int(re.ID),
-			Type:        "", // repository schema has no dedicated type field
+			Type:        re.Type,
 			Title:       re.Title,
 			Description: re.Description,
 			Location:    re.Source,

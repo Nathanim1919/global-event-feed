@@ -10,6 +10,7 @@ import (
 type Event struct {
 	ID          int64
 	Title       string
+	Type        string
 	Description string
 	Source      string
 	OccurredAt  time.Time
@@ -31,12 +32,12 @@ func (r *EventRepository) Create(ctx context.Context, e *Event) error {
 	}
 
 	query := `
-		INSERT INTO events (title, description, source, occurred_at, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, NOW(), NOW())
+		INSERT INTO events (title, type, description, source, occurred_at, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
 		RETURNING id
 	`
 
-	err := r.db.QueryRow(ctx, query, e.Title, e.Description, e.Source, e.OccurredAt).Scan(&e.ID)
+	err := r.db.QueryRow(ctx, query, e.Title, e.Type, e.Description, e.Source, e.OccurredAt).Scan(&e.ID)
 	if err != nil {
 		return err
 	}
@@ -46,7 +47,7 @@ func (r *EventRepository) Create(ctx context.Context, e *Event) error {
 
 func (r *EventRepository) GetByID(ctx context.Context, id int64) (*Event, error) {
 	const query = `
-		SELECT id, title, description, source, occurred_at, created_at, updated_at
+		SELECT id, title, type, description, source, occurred_at, created_at, updated_at
 		FROM events
 		WHERE id = $1
 	`
@@ -55,6 +56,7 @@ func (r *EventRepository) GetByID(ctx context.Context, id int64) (*Event, error)
 	err := r.db.QueryRow(ctx, query, id).Scan(
 		&e.ID,
 		&e.Title,
+		&e.Type,
 		&e.Description,
 		&e.Source,
 		&e.OccurredAt,
@@ -77,7 +79,7 @@ func (r *EventRepository) List(ctx context.Context, limit, offset int) ([]Event,
 	}
 
 	const query = `
-		SELECT id, title, description, source, occurred_at, created_at, updated_at
+		SELECT id, title, type, description, source, occurred_at, created_at, updated_at
 		FROM events
 		ORDER BY occurred_at DESC
 		LIMIT $1 OFFSET $2
@@ -95,6 +97,7 @@ func (r *EventRepository) List(ctx context.Context, limit, offset int) ([]Event,
 		if err := rows.Scan(
 			&e.ID,
 			&e.Title,
+			&e.Type,
 			&e.Description,
 			&e.Source,
 			&e.OccurredAt,

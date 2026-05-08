@@ -77,3 +77,21 @@ func (s *EventService) GetEvents(ctx context.Context, limit int) ([]model.Event,
 
 	return events, nil
 }
+
+
+func (s *EventService) GetEventByID(ctx context.Context, id int64) (*model.Event, error) {
+	repoEvent, err := s.repo.GetByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return &model.Event{
+		ID:          int(repoEvent.ID),
+		Type:        repoEvent.Type,
+		Title:       repoEvent.Title,
+		Description: repoEvent.Description,
+		Location:    repoEvent.Source,
+		Timestamp:   repoEvent.OccurredAt,
+		CreatedAt:   repoEvent.CreatedAt,
+	}, nil
+}

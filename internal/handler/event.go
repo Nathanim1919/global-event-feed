@@ -57,8 +57,29 @@ func (h *EventHandler) GetEvents(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(events)
 }
 
+
+// GET /events/{id}
+func (h *EventHandler) GetEventByID(w http.ResponseWriter, r *http.Request) {
+	idStr := chi.URLParam(r, "id")
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		http.Error(w, "invalid id", http.StatusBadRequest)
+		return
+	}
+
+	event, err := h.svc.GetEventByID(r.Context(), id)
+	if err != nil {
+		http.Error(w, "event not found", http.StatusNotFound)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(event)
+}
+
 // RegisterRoutes attaches handlers to router
 func (h *EventHandler) RegisterRoutes(r chi.Router) {
 	r.Post("/events", h.CreateEvent)
 	r.Get("/events", h.GetEvents)
+	r.Get("/events/{id}", h.GetEventByID)
 }

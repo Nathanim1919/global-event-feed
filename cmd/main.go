@@ -13,8 +13,11 @@ import (
 	"global-event-feed/internal/handler"
 	"global-event-feed/internal/repository"
 	"global-event-feed/internal/service"
+	"global-event-feed/internal/logger"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+	"go.uber.org/zap"
 )
 
 func main() {
@@ -29,9 +32,19 @@ func main() {
 	eventRepo := repository.NewEventRepository(db)
 	eventSvc := service.NewEventService(eventRepo)
 	eventHandler := handler.NewEventHandler(eventSvc)
+	zapLogger, err := logger.NewLogger()
+	 if err != nil {
+	      log.Fatal("failed to initialize logger: ", err)
+	  }
+	defer zapLogger.Sync()
 
 	// Router
 	r := chi.NewRouter()
+
+	// Run middlewares
+	r.Use(middleware.Logger)   // logs every request (method, path, duration)
+	r.Use(middleware.Recoverer)  // caches panics so the server doesnt crash
+
 	eventHandler.RegisterRoutes(r)
 
 	// log.Printf("Server running on port %s", cfg.Port)
@@ -43,11 +56,11 @@ func main() {
 
     // Run Server in Goroutine
     go func(){
-      log.Println("Server started on :"+cfg.Port)
+    	zapLogger.Info("Server running at: ", zap.String("Port", cfg.Port))
 
-      if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-          log.Fatalf("server error: %v", err)
-      }
+	    if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		    zapLogger.Fatal("server error", zap.Error(err))
+	    }
     }()
 
 
@@ -63,7 +76,7 @@ func main() {
     <-stop
 
 
-    log.Println("Shutting down server ...")
+    zapLogger.Info("Shutting down server ...")
 
     // Timeout for gracefull shutdown
     ctx, cancle := context.WithTimeout(
@@ -75,9 +88,9 @@ func main() {
 
     // Graceful shutdown
 	if err := server.Shutdown(ctx); err != nil {
-		log.Fatalf("shutdown failed: %v", err)
+		zapLogger.Fatal("shutdown failed: %v", zap.Error(err))
 	}
 
 
-	log.Println("Server exited cleanly")
+	zapLogger.Info("Server exited cleanly")
 }
